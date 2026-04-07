@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>升级VIP | 简历优化器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: white; border-radius: 32px; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); text-align: center; }
+        h1 { font-size: 28px; margin-bottom: 8px; background: linear-gradient(135deg, #667eea, #764ba2); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .price { font-size: 48px; font-weight: bold; color: #333; margin: 20px 0; }
+        .price small { font-size: 16px; font-weight: normal; }
+        .features { text-align: left; background: #f8f9fa; border-radius: 20px; padding: 20px; margin: 20px 0; }
+        .features li { list-style: none; padding: 8px 0; display: flex; align-items: center; gap: 10px; }
+        .features li:before { content: "✅"; }
+        .qrcode { width: 220px; height: 220px; background: #f0f0f0; margin: 20px auto; display: flex; align-items: center; justify-content: center; border-radius: 20px; overflow: hidden; }
+        .qrcode img { width: 100%; height: 100%; object-fit: contain; }
+        .user-name { font-size: 14px; color: #666; margin-top: 8px; }
+        button { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 14px 28px; border-radius: 40px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { opacity: 0.9; transform: scale(0.98); }
+        .vip-code { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 16px; padding: 16px; margin-top: 20px; }
+        .vip-code span { font-family: monospace; font-size: 20px; font-weight: bold; color: #22c55e; word-break: break-all; }
+        .note { font-size: 12px; color: #999; margin-top: 20px; }
+        .btn-back { background: #e0e0e0; color: #333; margin-top: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>💎 升级 VIP 会员</h1>
+        <p style="color:#666;">无限次优化 · 解锁模板 · 英文简历</p>
+        
+        <div class="price">
+            ¥9.9 <small>/ 月</small>
+        </div>
+        
+        <div class="features">
+            <li>无限次简历优化</li>
+            <li>3套精美模板</li>
+            <li>英文简历导出</li>
+            <li>面试题生成</li>
+            <li>优先体验新功能</li>
+        </div>
+        
+        <!-- 微信收款码 -->
+        <div class="qrcode">
+            <img src="wechat.jpg" alt="微信收款码" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect width=%22200%22 height=%22200%22 fill=%22%23ddd%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3E%E6%94%B6%E6%AC%BE%E7%A0%81%3C/text%3E%3C/svg%3E';">
+        </div>
+        
+        <p style="font-size:14px; color:#666;">👆 微信扫码支付 ¥9.9</p>
+        <div class="user-name">收款人：半清江水半清沙(**听)</div>
+        <p style="font-size:12px; color:#999; margin-top:8px;">支付后点击下方按钮获取激活码</p>
+        
+        <button id="checkPayBtn">🔓 我已支付，获取激活码</button>
+        
+        <div id="vipCodeArea" style="display:none;" class="vip-code">
+            <div>🎉 恭喜成为 VIP！</div>
+            <div style="margin:12px 0;">你的激活码：</div>
+            <span id="vipCode">----</span>
+            <button id="copyCodeBtn" style="background:#22c55e; margin-top:12px;">📋 复制激活码</button>
+        </div>
+        
+        <a href="index.html" style="text-decoration:none;">
+            <button class="btn-back">← 返回简历优化器</button>
+        </a>
+        
+        <div class="note">
+            💡 激活码使用方法：在简历优化器中点击「VIP激活」输入即可<br>
+            ⏰ 激活码有效期30天
+        </div>
+    </div>
+</div>
+
+<script>
+    // 生成随机激活码
+    function generateVIPCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 16; i++) {
+            if (i > 0 && i % 4 === 0) code += '-';
+            code += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return code;
+    }
+    
+    // 保存激活码到 localStorage
+    function saveVIPCode(code) {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        localStorage.setItem('vipCode', code);
+        localStorage.setItem('vipExpiry', expiryDate.toISOString());
+        localStorage.setItem('isVIP', 'true');
+    }
+    
+    document.getElementById('checkPayBtn').onclick = () => {
+        const newCode = generateVIPCode();
+        saveVIPCode(newCode);
+        
+        document.getElementById('vipCode').innerText = newCode;
+        document.getElementById('vipCodeArea').style.display = 'block';
+        document.getElementById('vipCodeArea').scrollIntoView({ behavior: 'smooth' });
+    };
+    
+    document.getElementById('copyCodeBtn').onclick = async () => {
+        const code = document.getElementById('vipCode').innerText;
+        await navigator.clipboard.writeText(code);
+        alert('✅ 激活码已复制！\n\n返回简历优化器，点击「VIP激活」粘贴即可');
+    };
+</script>
+</body>
+</html>

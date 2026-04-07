@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历优化器 Pro Max | 求职神器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f7; padding: 24px 16px; transition: background 0.3s; }
+        body.dark { background: #1a1a1c; color: #e8e8ec; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+        h1 { font-size: 1.8rem; font-weight: 600; background: linear-gradient(135deg, #2563eb, #7c3aed); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .badge { background: #2563eb20; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; color: #2563eb; }
+        .theme-toggle, .lang-btn, .pay-btn, .vip-btn { background: #e4e4e7; border: none; padding: 8px 14px; border-radius: 40px; cursor: pointer; }
+        body.dark .theme-toggle, body.dark .lang-btn, body.dark .pay-btn, body.dark .vip-btn { background: #2c2c30; color: #e8e8ec; }
+        .vip-btn { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
+        .card { background: white; border-radius: 24px; padding: 24px; margin-bottom: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        body.dark .card { background: #252527; }
+        label { font-weight: 500; display: block; margin-bottom: 8px; }
+        textarea, input, select { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid #e2e8f0; font-family: inherit; font-size: 0.95rem; resize: vertical; background: white; }
+        body.dark textarea, body.dark input, body.dark select { background: #1e1e20; border-color: #3a3a3e; color: #e8e8ec; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 28px; border-radius: 40px; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 8px; margin-right: 12px; transition: transform 0.1s; }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        .result-area { background: #f9fafb; border-radius: 20px; padding: 20px; white-space: pre-wrap; line-height: 1.55; border-left: 4px solid #2563eb; min-height: 150px; max-height: 400px; overflow-y: auto; }
+        body.dark .result-area { background: #1b1b1d; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+        .score-card { background: linear-gradient(135deg, #2563eb10, #7c3aed10); border-radius: 16px; padding: 16px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .score-value { font-size: 2rem; font-weight: bold; background: linear-gradient(135deg, #2563eb, #7c3aed); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+        .template-card { border: 2px solid #e2e8f0; border-radius: 16px; padding: 16px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .template-card:hover { border-color: #2563eb; transform: translateY(-2px); }
+        .template-card.selected { border-color: #2563eb; background: #2563eb10; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .remaining-count, .vip-badge { font-size: 0.85rem; background: #e4e4e7; padding: 4px 12px; border-radius: 20px; }
+        body.dark .remaining-count, body.dark .vip-badge { background: #3a3a3e; }
+        .vip-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
+        .footer-tip { font-size: 0.8rem; color: #6c6c72; margin-top: 20px; text-align: center; }
+        @media (max-width: 640px) { .card { padding: 18px; } h1 { font-size: 1.5rem; } .btn-group button { width: 100%; } }
+        
+        /* VIP弹窗样式 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 400px; width: 90%; text-align: center; }
+        body.dark .modal-content { background: #252527; }
+        .modal-content input { width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 16px; font-size: 16px; margin: 20px 0; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>📄 简历优化器 Pro Max</h1>
+            <span class="badge">🌍 多语言 | 🎨 模板库 | 💎 VIP付费</span>
+        </div>
+        <div class="flex-between" style="gap:12px;">
+            <select id="langSelect" class="lang-btn">
+                <option value="zh">🇨🇳 中文</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+            <span id="vipBadge" class="remaining-count">普通用户</span>
+            <button id="showVipBtn" class="vip-btn">🎁 VIP激活</button>
+            <button class="theme-toggle" id="themeToggle">🌙 深色模式</button>
+        </div>
+    </div>
+
+    <div id="limitWarning" class="score-card" style="display:none; background:#fef3c7; color:#92400e;"></div>
+
+    <div class="card">
+        <label id="resumeLabel">📝 简历内容</label>
+        <textarea id="resumeInput" rows="6" placeholder="例如：在一家公司做运营，负责公众号，每天发文章，粉丝涨了一些。还做过活动，效果还行。"></textarea>
+        <label id="jobLabel" style="margin-top:16px;">🎯 目标岗位</label>
+        <input type="text" id="jobTarget" placeholder="产品经理 / 新媒体运营 / Java开发..." value="新媒体运营">
+    </div>
+
+    <div class="card">
+        <label id="templateLabel">🎨 选择简历模板（VIP专享）</label>
+        <div class="template-grid" id="templateGrid">
+            <div class="template-card" data-template="simple">📄 简约白</div>
+            <div class="template-card" data-template="business">💼 商务蓝</div>
+            <div class="template-card" data-template="creative">🎨 创意橙</div>
+        </div>
+        <div id="templateLockMsg" style="font-size:0.8rem; color:#999; margin-top:8px;">🔒 VIP用户可解锁模板样式</div>
+    </div>
+
+    <div style="text-align: center;">
+        <button id="optimizeBtn">✨ 开始优化</button>
+    </div>
+
+    <div class="card">
+        <div class="flex-between">
+            <label id="resultLabel">✨ 优化结果</label>
+            <button id="clearHistoryBtn" class="pay-btn" style="background:#ef4444;">🗑️ 清空历史</button>
+        </div>
+        <div class="result-area" id="resultText">点击上方按钮，AI将帮你优化简历。</div>
+        
+        <div id="scoreCard" class="score-card" style="display: none;">
+            <div><span>📊 岗位匹配度</span><div class="score-value" id="matchScore">--</div></div>
+            <div id="scoreDetail" style="font-size: 0.85rem;"></div>
+        </div>
+
+        <div id="interviewCard" class="score-card" style="display: none;">
+            <div style="width:100%"><span>🎯 你可能被问到的面试题</span><div id="interviewQuestions" style="margin-top:12px; font-size:0.9rem;"></div></div>
+        </div>
+        
+        <div class="btn-group">
+            <button id="copyBtn">📋 复制</button>
+            <button id="downloadWordBtn">📄 下载 Word</button>
+            <button id="downloadPdfBtn">📑 下载 PDF</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <label>📜 历史记录（点击恢复）</label>
+        <div id="historyList" style="max-height:200px; overflow-y:auto;"><div style="color:#999; text-align:center; padding:20px;">暂无历史记录</div></div>
+    </div>
+
+    <div class="footer-tip">💡 免费版每日3次 | VIP无限次+模板解锁+英文简历</div>
+</div>
+
+<!-- VIP激活弹窗 -->
+<div id="vipModal" class="modal">
+    <div class="modal-content">
+        <h3>🎁 输入VIP激活码</h3>
+        <p style="font-size:14px; color:#666; margin-top:8px;">购买后复制激活码粘贴到这里</p>
+        <input type="text" id="vipCodeInput" placeholder="例如：ABCD-1234-EFGH-5678">
+        <button id="confirmVipBtn" style="background:#f59e0b; width:100%;">立即激活</button>
+        <button id="closeVipBtn" style="background:#999; width:100%; margin-top:8px;">关闭</button>
+        <p style="font-size:12px; color:#999; margin-top:16px;">没有激活码？<a href="vip.html" target="_blank">点击购买 ¥9.9/月</a></p>
+    </div>
+</div>
+
+<script>
+    // ========== 配置 ==========
+    const API_KEY = "sk-c125e8543b3f4e8b9ce496c899d92296";
+    let DAILY_LIMIT = 3;
+    let isVIP = localStorage.getItem('isVIP') === 'true';
+    let todayCount = 0;
+    let lastDate = localStorage.getItem('lastDate') || '';
+    let currentLang = 'zh';
+    let selectedTemplate = 'simple';
+    let versions = [];
+    let currentVersion = 0;
+    
+    // 检查VIP有效期
+    function checkVIPExpiry() {
+        const expiry = localStorage.getItem('vipExpiry');
+        if (expiry && new Date(expiry) < new Date()) {
+            localStorage.removeItem('isVIP');
+            localStorage.removeItem('vipCode');
+            localStorage.removeItem('vipExpiry');
+            isVIP = false;
+            initLimit();
+        }
+    }
+    checkVIPExpiry();
+    
+    // 多语言文本
+    const texts = {
+        zh: { resume: "📝 简历内容", job: "🎯 目标岗位", template: "🎨 选择简历模板（VIP专享）", result: "✨ 优化结果", optimize: "✨ 开始优化", copy: "📋 复制", word: "📄 下载 Word", pdf: "📑 下载 PDF", noHistory: "暂无历史记录" },
+        en: { resume: "📝 Resume Content", job: "🎯 Target Position", template: "🎨 Resume Template (VIP)", result: "✨ Optimized Result", optimize: "✨ Start Optimization", copy: "📋 Copy", word: "📄 Download Word", pdf: "📑 Download PDF", noHistory: "No history" }
+    };
+    
+    function updateLanguage() {
+        document.getElementById('resumeLabel').innerText = texts[currentLang].resume;
+        document.getElementById('jobLabel').innerText = texts[currentLang].job;
+        document.getElementById('templateLabel').innerText = texts[currentLang].template;
+        document.getElementById('resultLabel').innerText = texts[currentLang].result;
+        document.getElementById('optimizeBtn').innerText = texts[currentLang].optimize;
+        document.getElementById('copyBtn').innerText = texts[currentLang].copy;
+        document.getElementById('downloadWordBtn').innerText = texts[currentLang].word;
+        document.getElementById('downloadPdfBtn').innerText = texts[currentLang].pdf;
+    }
+    
+    document.getElementById('langSelect').onchange = (e) => { currentLang = e.target.value; updateLanguage(); };
+    
+    function initLimit() {
+        const today = new Date().toDateString();
+        if (lastDate !== today) { todayCount = 0; localStorage.setItem('lastDate', today); localStorage.setItem('todayCount', '0'); }
+        else { todayCount = parseInt(localStorage.getItem('todayCount') || '0'); }
+        const remaining = Math.max(0, DAILY_LIMIT - todayCount);
+        document.getElementById('vipBadge').innerHTML = isVIP ? '👑 VIP会员' : '普通用户';
+        document.getElementById('vipBadge').className = isVIP ? 'vip-badge' : 'remaining-count';
+        if (!isVIP && todayCount >= DAILY_LIMIT) {
+            document.getElementById('limitWarning').style.display = 'block';
+            document.getElementById('limitWarning').innerHTML = '⚠️ 今日免费次数已用完，请升级VIP或明天再来！';
+            document.getElementById('optimizeBtn').disabled = true;
+        } else {
+            document.getElementById('limitWarning').style.display = 'none';
+            document.getElementById('optimizeBtn').disabled = false;
+        }
+        document.getElementById('templateLockMsg').innerHTML = isVIP ? '✅ VIP用户已解锁模板样式' : '🔒 VIP用户可解锁模板样式，升级后优化结果将套用模板格式';
+    }
+    
+    function consumeLimit() { if (!isVIP) { todayCount++; localStorage.setItem('todayCount', todayCount); initLimit(); } }
+    
+    // VIP激活弹窗
+    document.getElementById('showVipBtn').onclick = () => { document.getElementById('vipModal').style.display = 'flex'; };
+    document.getElementById('closeVipBtn').onclick = () => { document.getElementById('vipModal').style.display = 'none'; };
+    document.getElementById('confirmVipBtn').onclick = () => {
+        const inputCode = document.getElementById('vipCodeInput').value.trim();
+        const savedCode = localStorage.getItem('vipCode');
+        const expiry = localStorage.getItem('vipExpiry');
+        
+        if (!savedCode || savedCode !== inputCode) {
+            alert('❌ 激活码无效，请检查后重新输入');
+            return;
+        }
+        if (expiry && new Date(expiry) < new Date()) {
+            alert('❌ 激活码已过期，请重新购买');
+            return;
+        }
+        localStorage.setItem('isVIP', 'true');
+        isVIP = true;
+        alert('🎉 激活成功！刷新页面后即可享受VIP权益');
+        location.reload();
+    };
+    
+    // 模板选择
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.onclick = () => {
+            if (!isVIP) { alert('请先升级VIP解锁模板功能'); return; }
+            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedTemplate = card.dataset.template;
+            applyTemplate();
+        };
+    });
+    
+    function applyTemplate() {
+        if (!isVIP) return;
+        const resultDiv = document.getElementById('resultText');
+        let content = resultDiv.innerText;
+        if (selectedTemplate === 'business') content = '【商务版】\n' + content;
+        else if (selectedTemplate === 'creative') content = '✨ 创意版 ✨\n' + content;
+        resultDiv.innerText = content;
+    }
+    
+    async function callAI(prompt) {
+        const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + API_KEY },
+            body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "user", content: prompt }], max_tokens: 1500 })
+        });
+        if (!res.ok) throw new Error("请求失败");
+        return (await res.json()).choices[0].message.content;
+    }
+    
+    async function generateNewVersion() {
+        let original = document.getElementById('resumeInput').value.trim();
+        const job = document.getElementById('jobTarget').value.trim();
+        if (!original || !job) { alert("请填写完整"); return; }
+        
+        if (currentLang === 'en') {
+            original = await callAI(`Translate this resume to English:\n${original}`);
+            document.getElementById('resumeInput').value = original;
+        }
+        
+        const optimized = await callAI(`Optimize resume for ${job}. Professional wording, highlight data. Output directly:\n${original}`);
+        const scoreText = await callAI(`Score 0-100 for this resume vs ${job}. Format: score:number; comment:text\n${optimized}`);
+        const scoreMatch = scoreText.match(/score[:：](\d+)/i);
+        const score = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+        const detailMatch = scoreText.match(/comment[:：](.+)/i);
+        const interview = await callAI(`Generate 5 interview questions with answer tips for this resume and job ${job}:\n${optimized}`);
+        
+        let finalContent = optimized;
+        if (isVIP) finalContent = `【${selectedTemplate === 'business' ? '商务版' : selectedTemplate === 'creative' ? '创意版' : '简约版'}】\n\n${optimized}`;
+        
+        versions.push({ content: finalContent, score, interview, job, timestamp: new Date().toISOString() });
+        localStorage.setItem('resumeVersions', JSON.stringify(versions));
+        currentVersion = versions.length - 1;
+        document.getElementById('resultText').innerText = finalContent;
+        document.getElementById('scoreCard').style.display = 'flex';
+        document.getElementById('matchScore').innerHTML = score;
+        document.getElementById('scoreDetail').innerHTML = detailMatch ? detailMatch[1] : '匹配度良好';
+        document.getElementById('interviewCard').style.display = 'block';
+        document.getElementById('interviewQuestions').innerHTML = interview.replace(/\n/g, '<br>');
+        renderHistoryList();
+    }
+    
+    function renderHistoryList() {
+        const container = document.getElementById('historyList');
+        if (!versions.length) { container.innerHTML = `<div style="color:#999; text-align:center; padding:20px;">${texts[currentLang].noHistory}</div>`; return; }
+        container.innerHTML = versions.map((v, i) => `<div class="history-item" onclick="showVersion(${i})"><b>版本${i+1}</b> - ${v.job}<br>${v.content.substring(0,60)}...</div>`).join('');
+    }
+    window.showVersion = function(i) { document.getElementById('resultText').innerText = versions[i].content; };
+    
+    document.getElementById('optimizeBtn').onclick = async () => {
+        if (!isVIP && todayCount >= DAILY_LIMIT) { alert("今日免费次数已用完，请升级VIP"); return; }
+        consumeLimit();
+        await generateNewVersion();
+    };
+    document.getElementById('copyBtn').onclick = async () => { await navigator.clipboard.writeText(document.getElementById('resultText').innerText); alert("已复制"); };
+    document.getElementById('downloadWordBtn').onclick = () => {
+        const blob = new Blob([document.getElementById('resultText').innerText], { type: 'application/msword' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `resume_${Date.now()}.doc`; link.click();
+    };
+    document.getElementById('downloadPdfBtn').onclick = () => {
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><title>Resume</title><style>body{font-family:Arial;padding:40px}</style></head><body><pre>${document.getElementById('resultText').innerText}</pre></body></html>`);
+        win.print();
+    };
+    document.getElementById('clearHistoryBtn').onclick = () => { if(confirm("清空所有历史？")) { versions = []; localStorage.removeItem('resumeVersions'); renderHistoryList(); } };
+    
+    // 深色模式
+    const themeToggle = document.getElementById('themeToggle'), body = document.body;
+    const setTheme = (t) => { if(t==='dark'){ body.classList.add('dark'); themeToggle.innerHTML='☀️ 浅色模式'; } else { body.classList.remove('dark'); themeToggle.innerHTML='🌙 深色模式'; } };
+    setTheme(localStorage.getItem('theme')||'light');
+    themeToggle.onclick = () => { const newTheme = body.classList.contains('dark') ? 'light' : 'dark'; setTheme(newTheme); localStorage.setItem('theme', newTheme); };
+    
+    initLimit();
+    const saved = localStorage.getItem('resumeVersions');
+    if(saved) { versions = JSON.parse(saved); renderHistoryList(); }
+    updateLanguage();
+</script>
+</body>
+</html>
