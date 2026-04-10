@@ -6,6 +6,7 @@
     <title>AI简历优化器 | 智能优化+职位定制</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        /* 样式与之前完全相同，此处省略（实际使用请复制之前完整样式） */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fb; padding: 12px; transition: background 0.3s; }
         body.dark { background: #1a1a1c; color: #e8e8ec; }
@@ -341,17 +342,12 @@
         }
     };
 
-    // 生成精美简历模板按钮（VIP专属）
+    // 生成精美简历模板按钮（已移除VIP限制，所有用户均可使用）
     document.getElementById('toTemplateBtn').onclick = () => {
-        if (isVIP) {
-            window.open('resume_template.html', '_blank');
-        } else {
-            alert('该功能为VIP专属，请升级VIP（¥9.9/月）');
-            document.getElementById('vipModal').style.display = 'flex';
-        }
+        window.open('resume_template.html', '_blank');
     };
 
-    // 下载 Word 和 PDF 也限制为VIP（可选，也可按之前逻辑只限制模板）
+    // 下载 Word 和 PDF 保留VIP限制（可根据需要调整）
     document.getElementById('downloadWordBtn').onclick = () => {
         if (!isVIP) {
             alert('下载Word功能为VIP专属，请升级VIP（¥9.9/月）');
