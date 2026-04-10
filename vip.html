@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>升级VIP | 简历优化器</title>
+    <title>升级VIP - 简历优化器</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; }
@@ -18,12 +18,18 @@
         .qrcode { width: 220px; height: 220px; background: #f0f0f0; margin: 20px auto; display: flex; align-items: center; justify-content: center; border-radius: 20px; overflow: hidden; }
         .qrcode img { width: 100%; height: 100%; object-fit: contain; }
         .user-name { font-size: 14px; color: #666; margin-top: 8px; }
-        button { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 14px 28px; border-radius: 40px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .form-group { margin: 20px 0; text-align: left; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: #333; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; font-family: inherit; }
+        button { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 14px 28px; border-radius: 40px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s; }
         button:hover { opacity: 0.9; transform: scale(0.98); }
-        .vip-code { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 16px; padding: 16px; margin-top: 20px; }
-        .vip-code span { font-family: monospace; font-size: 20px; font-weight: bold; color: #22c55e; word-break: break-all; }
         .note { font-size: 12px; color: #999; margin-top: 20px; }
         .btn-back { background: #e0e0e0; color: #333; margin-top: 12px; }
+        .success-msg { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 16px; margin-top: 20px; display: none; }
+        .contact-bar { margin: 16px 0; padding: 12px; background: #f0f9ff; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .contact-bar span { color: #2563eb; font-weight: bold; }
+        .copy-wechat-btn { background: none; border: 1px solid #2563eb; border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; width: auto; margin: 0; color: #2563eb; background: white; }
+        .copy-wechat-btn:hover { background: #2563eb; color: white; }
     </style>
 </head>
 <body>
@@ -32,9 +38,7 @@
         <h1>💎 升级 VIP 会员</h1>
         <p style="color:#666;">无限次优化 · 解锁模板 · 英文简历</p>
         
-        <div class="price">
-            ¥9.9 <small>/ 月</small>
-        </div>
+        <div class="price">¥9.9 <small>/ 月</small></div>
         
         <div class="features">
             <li>无限次简历优化</li>
@@ -48,66 +52,87 @@
         <div class="qrcode">
             <img src="wechat.jpg" alt="微信收款码" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect width=%22200%22 height=%22200%22 fill=%22%23ddd%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3E%E6%94%B6%E6%AC%BE%E7%A0%81%3C/text%3E%3C/svg%3E';">
         </div>
+        <div class="user-name">收款人：半清江水半清沙</div>
+        <p style="font-size:14px; color:#666; margin:8px 0;">👆 微信扫码支付 ¥9.9</p>
+        <p style="font-size:12px; color:#f97316;">⚠️ 支付后请务必填写以下信息，我们将在24小时内审核并发放激活码</p>
         
-        <p style="font-size:14px; color:#666;">👆 微信扫码支付 ¥9.9</p>
-        <div class="user-name">收款人：半清江水半清沙(**听)</div>
-        <p style="font-size:12px; color:#999; margin-top:8px;">支付后点击下方按钮获取激活码</p>
-        
-        <button id="checkPayBtn">🔓 我已支付，获取激活码</button>
-        
-        <div id="vipCodeArea" style="display:none;" class="vip-code">
-            <div>🎉 恭喜成为 VIP！</div>
-            <div style="margin:12px 0;">你的激活码：</div>
-            <span id="vipCode">----</span>
-            <button id="copyCodeBtn" style="background:#22c55e; margin-top:12px;">📋 复制激活码</button>
+        <!-- 客服微信号及复制按钮 -->
+        <div class="contact-bar">
+            <span>📱 客服微信号：<strong>TDT05010511</strong></span>
+            <button id="copyWechatBtn" class="copy-wechat-btn">📋 复制微信号</button>
         </div>
+        <p style="font-size:0.8rem; color:#666; margin-top:-8px;">请添加客服微信，发送复制的信息以获取激活码</p>
+        
+        <!-- 提交支付凭证表单 -->
+        <div class="form-group">
+            <label>💬 您的微信号</label>
+            <input type="text" id="contact" placeholder="请输入您的微信号" required>
+        </div>
+        <div class="form-group">
+            <label>🧾 微信支付订单号（必填）</label>
+            <input type="text" id="orderId" placeholder="支付后可在微信账单中查看" required>
+        </div>
+        <div class="form-group">
+            <label>📸 支付截图链接（可选）</label>
+            <input type="text" id="screenshot" placeholder="如有截图，可粘贴图片链接">
+        </div>
+        
+        <button id="submitBtn">📝 提交审核，获取激活码</button>
+        
+        <div id="successMsg" class="success-msg"></div>
         
         <a href="index.html" style="text-decoration:none;">
             <button class="btn-back">← 返回简历优化器</button>
         </a>
         
         <div class="note">
-            💡 激活码使用方法：在简历优化器中点击「VIP激活」输入即可<br>
-            ⏰ 激活码有效期30天
+            💡 提交后，我们会核对您的支付记录，确认后通过微信发放激活码。<br>
+            ⏰ 审核时间：通常24小时内完成，请耐心等待。
         </div>
     </div>
 </div>
 
 <script>
-    // 生成随机激活码
-    function generateVIPCode() {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-        let code = '';
-        for (let i = 0; i < 16; i++) {
-            if (i > 0 && i % 4 === 0) code += '-';
-            code += chars[Math.floor(Math.random() * chars.length)];
-        }
-        return code;
-    }
-    
-    // 保存激活码到 localStorage
-    function saveVIPCode(code) {
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 30);
-        localStorage.setItem('vipCode', code);
-        localStorage.setItem('vipExpiry', expiryDate.toISOString());
-        localStorage.setItem('isVIP', 'true');
-    }
-    
-    document.getElementById('checkPayBtn').onclick = () => {
-        const newCode = generateVIPCode();
-        saveVIPCode(newCode);
+    // 复制微信号
+    document.getElementById('copyWechatBtn').addEventListener('click', function() {
+        navigator.clipboard.writeText('TDT05010511').then(() => {
+            alert('客服微信号已复制，请打开微信粘贴搜索添加好友');
+        }).catch(() => {
+            alert('复制失败，请手动复制微信号：TDT05010511');
+        });
+    });
+
+    // 提交审核
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+        const contact = document.getElementById('contact').value.trim();
+        const orderId = document.getElementById('orderId').value.trim();
         
-        document.getElementById('vipCode').innerText = newCode;
-        document.getElementById('vipCodeArea').style.display = 'block';
-        document.getElementById('vipCodeArea').scrollIntoView({ behavior: 'smooth' });
-    };
-    
-    document.getElementById('copyCodeBtn').onclick = async () => {
-        const code = document.getElementById('vipCode').innerText;
-        await navigator.clipboard.writeText(code);
-        alert('✅ 激活码已复制！\n\n返回简历优化器，点击「VIP激活」粘贴即可');
-    };
+        if (!contact || !orderId) {
+            alert('请填写微信号和支付订单号');
+            return;
+        }
+        
+        const data = {
+            contact: contact,
+            orderId: orderId,
+            screenshot: document.getElementById('screenshot').value.trim(),
+            time: new Date().toLocaleString()
+        };
+        
+        const message = `【VIP审核】\n微信号：${data.contact}\n订单号：${data.orderId}\n截图：${data.screenshot || '无'}\n时间：${data.time}`;
+        
+        if (confirm('请复制以下信息，并通过微信发送给客服（TDT05010511）以完成审核：\n\n' + message + '\n\n点击确定复制文本')) {
+            navigator.clipboard.writeText(message).then(() => {
+                document.getElementById('successMsg').innerHTML = '✅ 信息已复制！请打开微信，粘贴并发送给客服（TDT05010511），我们将在24小时内为您发放激活码。';
+                document.getElementById('successMsg').style.display = 'block';
+                document.getElementById('contact').value = '';
+                document.getElementById('orderId').value = '';
+                document.getElementById('screenshot').value = '';
+            }).catch(() => {
+                alert('复制失败，请手动复制以上信息。');
+            });
+        }
+    });
 </script>
 </body>
 </html>
