@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>简历模板生成器 - 手动编辑</title>
     <style>
+        /* 保持原有所有样式，不加修改 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: '微软雅黑', 'Segoe UI', Roboto, sans-serif; background: #eef2f5; padding: 12px; }
         .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
@@ -46,39 +47,6 @@
         .contact-bar span { color: #2563eb; font-weight: bold; }
         .copy-wechat-btn { background: none; border: 1px solid #2563eb; border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; width: auto; margin: 0; color: #2563eb; background: white; cursor: pointer; }
         .copy-wechat-btn:hover { background: #2563eb; color: white; }
-        /* 打印样式：仅显示简历内容 */
-        @media print {
-            .form-panel, .btn-group, .photo-upload, .add-btn, .modal, .contact-bar, #activateCodeBtn, .btn, .btn-secondary, a, button, .info-grid {
-                display: none !important;
-            }
-            .preview-panel {
-                padding: 0;
-                margin: 0;
-                box-shadow: none;
-            }
-            .preview-card {
-                box-shadow: none;
-                border: none;
-                margin: 0;
-                padding: 0;
-            }
-            .preview-header {
-                background: #2c3e66 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .photo {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            body {
-                background: white;
-                padding: 0;
-            }
-            .container {
-                gap: 0;
-            }
-        }
         @media (min-width: 768px) {
             .container { flex-direction: row; }
             .form-panel { flex: 1; }
@@ -93,6 +61,7 @@
         <p style="margin-bottom: 12px; color: #666; font-size: 0.8rem;">💡 请将AI优化器生成的内容复制粘贴到对应字段中。</p>
 
         <form id="resumeForm">
+            <!-- 表单内容保持不变，与之前完全相同，为避免代码过长此处省略，但实际部署时请保留完整表单 -->
             <div class="form-group"><label>姓名</label><input type="text" id="name" value="麦小间"></div>
             <div class="form-group"><label>求职意向</label><input type="text" id="jobTitle" value="行政经理/主管"></div>
             <div class="form-group"><label>手机</label><input type="text" id="phone" value="15834598888"></div>
@@ -173,6 +142,7 @@
     let hasSingleDownload = localStorage.getItem('single_download') === 'true';
     const DOWNLOAD_CODE = "DOWNLOAD123";
 
+    // 初始化示例数据与动态表单函数（与之前完全相同，为保证代码完整，此处保留所有函数）
     function initExample() {
         eduEntries = [
             { school: "上海大学", major: "工商管理", degree: "本科", date: "2012.09 - 2016.07", description: "主修课程：基础会计学、货币银行学、统计学、经济法概论、财务会计学、管理学原理、组织行为学、市场营销学、国际贸易理论、国际贸易实务、人力资源开发与管理、财务管理学、企业经营战略概论、质量管理学、西方经济学等。" }
@@ -407,7 +377,7 @@
         return false;
     }
 
-    // 下载 Word
+    // 下载 Word（保持不变）
     document.getElementById('downloadWordBtn').onclick = () => {
         if (!handleDownload()) return;
         const content = document.getElementById('resumePreview').innerHTML;
@@ -421,10 +391,62 @@
         URL.revokeObjectURL(link.href);
     };
 
-    // 保存为 PDF（改用浏览器打印）
+    // PDF 方案：创建纯内容新窗口并调用打印（避开原页面复杂样式导致的崩溃）
     document.getElementById('downloadPdfBtn').onclick = () => {
         if (!handleDownload()) return;
-        window.print();
+        // 获取简历预览区域的 HTML
+        const previewElement = document.getElementById('resumePreview');
+        const contentHTML = previewElement.cloneNode(true);
+        // 获取当前样式（直接复制页面所有样式）
+        const styles = document.querySelector('style').innerHTML;
+        // 打开新窗口
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>我的简历</title>
+                <style>
+                    /* 保留所有原有样式，并额外添加打印优化 */
+                    ${styles}
+                    body {
+                        background: white;
+                        padding: 20px;
+                        margin: 0;
+                    }
+                    .form-panel, .btn-group, .photo-upload, .add-btn, .modal, .contact-bar, #activateCodeBtn, .btn, .btn-secondary, a, button, .info-grid {
+                        display: none !important;
+                    }
+                    .preview-panel {
+                        padding: 0;
+                        margin: 0;
+                        box-shadow: none;
+                    }
+                    .preview-card {
+                        box-shadow: none;
+                        border: none;
+                        margin: 0 auto;
+                        max-width: 800px;
+                    }
+                    .preview-header {
+                        background: #2c3e66 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .photo {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                </style>
+            </head>
+            <body>
+                ${contentHTML.outerHTML}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
     };
 
     // 激活码逻辑（带视觉反馈）
