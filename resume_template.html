@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>简历模板生成器 - 手动编辑</title>
+    <!-- html2canvas + jsPDF 用于生成真正的 PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: '微软雅黑', 'Segoe UI', Roboto, sans-serif; background: #eef2f5; padding: 12px; }
@@ -46,35 +49,6 @@
         .contact-bar span { color: #2563eb; font-weight: bold; }
         .copy-wechat-btn { background: none; border: 1px solid #2563eb; border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; width: auto; margin: 0; color: #2563eb; background: white; cursor: pointer; }
         .copy-wechat-btn:hover { background: #2563eb; color: white; }
-        /* 打印样式：只显示简历内容，隐藏所有按钮和表单 */
-        @media print {
-            body, .container, .preview-panel {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .form-panel, .btn-group, .photo-upload, .add-btn, .modal, .contact-bar, #activateCodeBtn, .btn, a, button, .info-grid {
-                display: none !important;
-            }
-            .preview-card {
-                box-shadow: none;
-                border: none;
-                margin: 0;
-                padding: 0;
-            }
-            .preview-header {
-                background: #2c3e66 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .photo {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .preview-content {
-                padding: 0.5in;
-            }
-        }
         @media (min-width: 768px) {
             .container { flex-direction: row; }
             .form-panel { flex: 1; }
@@ -117,7 +91,7 @@
             <div class="btn-group">
                 <button type="button" class="btn" id="resetFormBtn">🔄 重置表单</button>
                 <button type="button" class="btn btn-secondary" id="downloadWordBtn">📄 下载 Word</button>
-                <button type="button" class="btn btn-secondary" id="printPdfBtn">📑 保存为 PDF</button>
+                <button type="button" class="btn btn-secondary" id="pdfCaptureBtn">📑 保存为 PDF</button>
             </div>
             <div style="margin-top: 12px; text-align: center;">
                 <button type="button" id="activateCodeBtn" class="btn-secondary" style="background: #10b981; color: white;">🔑 已有一次性下载码？点击激活</button>
@@ -417,13 +391,46 @@
         URL.revokeObjectURL(link.href);
     };
 
-    // 保存为 PDF：直接使用浏览器的打印功能，稳定可靠
-    document.getElementById('printPdfBtn').onclick = () => {
+    // 新增：截图生成 PDF（html2canvas + jsPDF）
+    document.getElementById('pdfCaptureBtn').onclick = async () => {
         if (!handleDownload()) return;
-        window.print();
+        const element = document.getElementById('resumePreview');
+        if (!element) {
+            alert('未找到预览内容');
+            return;
+        }
+        const btn = this;
+        const originalText = btn.innerText;
+        btn.innerText = '生成中...';
+        btn.disabled = true;
+        try {
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: false,
+                logging: false
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const imgWidth = 210; // mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const pdf = new jsPDF({
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.save('my_resume.pdf');
+        } catch (err) {
+            console.error(err);
+            alert('PDF 生成失败，请使用“下载 Word”后另存为 PDF。');
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
     };
 
-    // 激活码逻辑
+    // 激活码逻辑（带视觉反馈）
     const activateBtn = document.getElementById('activateCodeBtn');
     const verifyBtn = document.getElementById('verifyCodeBtn');
     verifyBtn.onclick = () => {
