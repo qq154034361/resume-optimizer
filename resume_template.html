@@ -54,6 +54,13 @@
             .form-panel { flex: 1; }
             .preview-panel { flex: 1; }
         }
+        /* 增加提示样式 */
+        .tooltip {
+            font-size: 0.75rem;
+            color: #888;
+            text-align: center;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -93,6 +100,7 @@
                 <button type="button" class="btn btn-secondary" id="downloadWordBtn">📄 下载 Word</button>
                 <button type="button" class="btn btn-secondary" id="pdfCaptureBtn">📑 保存为 PDF</button>
             </div>
+            <div class="tooltip">💡 若 PDF 生成缓慢，请优先使用“下载 Word”，然后用 Word 打开另存为 PDF</div>
             <div style="margin-top: 12px; text-align: center;">
                 <button type="button" id="activateCodeBtn" class="btn-secondary" style="background: #10b981; color: white;">🔑 已有一次性下载码？点击激活</button>
             </div>
@@ -391,7 +399,7 @@
         URL.revokeObjectURL(link.href);
     };
 
-    // 新增：截图生成 PDF（html2canvas + jsPDF）
+    // 优化后：截图生成 PDF（带超时和降级）
     document.getElementById('pdfCaptureBtn').onclick = async () => {
         if (!handleDownload()) return;
         const element = document.getElementById('resumePreview');
@@ -403,13 +411,23 @@
         const originalText = btn.innerText;
         btn.innerText = '生成中...';
         btn.disabled = true;
+
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error('生成超时，请尝试使用“下载 Word”')), 5000);
+        });
+
         try {
-            const canvas = await html2canvas(element, {
-                scale: 2,
+            const capturePromise = html2canvas(element, {
+                scale: 1.5,
                 backgroundColor: '#ffffff',
                 useCORS: false,
-                logging: false
+                logging: false,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
             });
+            const canvas = await Promise.race([capturePromise, timeoutPromise]);
+            clearTimeout(timeoutId);
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
             const imgWidth = 210; // mm
@@ -423,8 +441,9 @@
             pdf.save('my_resume.pdf');
         } catch (err) {
             console.error(err);
-            alert('PDF 生成失败，请使用“下载 Word”后另存为 PDF。');
+            alert('PDF 生成失败：' + (err.message || '未知错误') + '\n\n建议您使用“下载 Word”功能，然后使用 Word 另存为 PDF。');
         } finally {
+            clearTimeout(timeoutId);
             btn.innerText = originalText;
             btn.disabled = false;
         }
