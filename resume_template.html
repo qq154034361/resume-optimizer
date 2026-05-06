@@ -36,8 +36,8 @@
         .job-desc { font-size: 0.8rem; line-height: 1.5; color: #333; white-space: pre-wrap; }
         .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
         .skill-tag { background: #e9ecef; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
-        .btn-group { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .btn { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 40px; cursor: pointer; font-weight: 600; font-size: 0.8rem; flex: 1; min-width: 80px; }
+        .btn-group { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .btn { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 40px; cursor: pointer; font-weight: 600; font-size: 0.8rem; min-width: 100px; }
         .btn-secondary { background: #e4e4e7; color: #333; }
         .photo-upload { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
         .photo-preview { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; background: #e0e0e0; border: 1px solid #ccc; }
@@ -101,10 +101,11 @@
 
             <div class="btn-group">
                 <button type="button" class="btn" id="resetFormBtn">🔄 重置表单</button>
-                <button type="button" class="btn btn-secondary" id="pdfPcBtn">📄 保存为 PDF（电脑推荐）</button>
+                <button type="button" class="btn btn-secondary" id="downloadWordBtn">📄 下载 Word</button>
+                <button type="button" class="btn btn-secondary" id="pdfPcBtn">💻 保存为 PDF（电脑推荐）</button>
                 <button type="button" class="btn btn-secondary" id="htmlMobileBtn">📱 导出 HTML（手机适用）</button>
             </div>
-            <div class="tooltip">💻 电脑用户点击左按钮直接下载 PDF；📱 手机用户点击右按钮导出 HTML，按提示打印为 PDF（更稳定）。</div>
+            <div class="tooltip">💡 Word 文件可用 Word/WPS 打开后另存为 PDF；电脑端可直接生成 PDF；手机端请用“导出 HTML”后打印。</div>
             <div style="margin-top: 12px; text-align: center;">
                 <button type="button" id="activateCodeBtn" class="btn-secondary" style="background: #10b981; color: white;">🔑 已有一次性下载码？点击激活</button>
             </div>
@@ -155,7 +156,6 @@
     let hasSingleDownload = localStorage.getItem('single_download') === 'true';
     const DOWNLOAD_CODE = "DOWNLOAD123";
 
-    // 示例数据初始化
     function initExample() {
         eduEntries = [
             { school: "上海大学", major: "工商管理", degree: "本科", date: "2012.09 - 2016.07", description: "主修课程：基础会计学、货币银行学、统计学、经济法概论、财务会计学、管理学原理、组织行为学、市场营销学、国际贸易理论、国际贸易实务、人力资源开发与管理、财务管理学、企业经营战略概论、质量管理学、西方经济学等。" }
@@ -390,6 +390,20 @@
         return false;
     }
 
+    // 下载 Word
+    document.getElementById('downloadWordBtn').onclick = () => {
+        if (!handleDownload()) return;
+        const content = document.getElementById('resumePreview').innerHTML;
+        const style = document.querySelector('style').innerHTML;
+        const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>我的简历</title><style>${style} body { padding: 20px; background: white; } .preview-panel, .btn-group, .form-panel { display: none; }</style></head><body>${content}</body></html>`;
+        const blob = new Blob([fullHtml], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'my_resume.doc';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    };
+
     // 电脑端：直接生成 PDF（html2canvas + jsPDF）
     document.getElementById('pdfPcBtn').onclick = async () => {
         if (!handleDownload()) return;
@@ -417,9 +431,9 @@
             pdf.save('my_resume.pdf');
         } catch (err) {
             console.error(err);
-            alert('PDF 生成失败，请尝试使用“导出 HTML”按钮。');
+            alert('PDF 生成失败，请尝试使用“下载 Word”或“导出 HTML”。');
         } finally {
-            btn.innerText = '📄 保存为 PDF（电脑推荐）';
+            btn.innerText = '💻 保存为 PDF（电脑推荐）';
             btn.disabled = false;
         }
     };
