@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>简历模板生成器 - 手动编辑</title>
-    <!-- html2canvas + jsPDF 用于电脑端 PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas + jsPDF 不再需要，但保留以备其他功能（已弃用） -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: '微软雅黑', 'Segoe UI', Roboto, sans-serif; background: #eef2f5; padding: 12px; }
@@ -65,6 +63,76 @@
             text-align: left;
         }
         .print-guide p { margin: 4px 0; }
+
+        /* ========== 打印样式：只打印简历内容，自动分页 ========== */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .form-panel,
+            .btn-group,
+            .tooltip,
+            .print-guide,
+            .modal,
+            .btn-group *,
+            #activateCodeBtn,
+            .add-btn,
+            .remove-btn,
+            .photo-upload,
+            [style*="display: flex; justify-content: space-between;"],
+            .btn,
+            .btn-secondary,
+            .tooltip,
+            .copy-wechat-btn,
+            .contact-bar,
+            .qrcode-img,
+            #resetFormBtn,
+            #downloadWordBtn,
+            #pdfPcBtn,
+            #htmlMobileBtn,
+            .print-btn-container,
+            .print-note,
+            header, footer, nav {
+                display: none !important;
+            }
+            .preview-panel {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                background: white !important;
+                width: 100% !important;
+            }
+            .preview-card {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                margin: 0;
+                padding: 0;
+            }
+            .preview-header {
+                background: #2c3e66 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .photo {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .info-grid, .skill-tag {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            /* 分页避免内容被截断 */
+            .section, .job-item, .edu-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            body, .preview-card, .preview-content {
+                page-break-after: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -102,10 +170,10 @@
             <div class="btn-group">
                 <button type="button" class="btn" id="resetFormBtn">🔄 重置表单</button>
                 <button type="button" class="btn btn-secondary" id="downloadWordBtn">📄 下载 Word</button>
-                <button type="button" class="btn btn-secondary" id="pdfPcBtn">💻 保存为 PDF（电脑推荐）</button>
+                <button type="button" class="btn btn-secondary" id="pdfPcBtn">🖨️ 保存为 PDF（电脑推荐）</button>
                 <button type="button" class="btn btn-secondary" id="htmlMobileBtn">📱 导出 HTML（手机适用）</button>
             </div>
-            <div class="tooltip">💡 Word 文件可用 Word/WPS 打开后另存为 PDF；电脑端可直接生成 PDF；手机端请用“导出 HTML”后打印。</div>
+            <div class="tooltip">💡 Word 文件可用 Word/WPS 打开后另存为 PDF；电脑端点击“保存为 PDF”将弹出系统打印框，选择“另存为 PDF”即可完整分页。</div>
             <div style="margin-top: 12px; text-align: center;">
                 <button type="button" id="activateCodeBtn" class="btn-secondary" style="background: #10b981; color: white;">🔑 已有一次性下载码？点击激活</button>
             </div>
@@ -122,7 +190,7 @@
     </div>
 </div>
 
-<!-- 单次付费模态框 -->
+<!-- 单次付费模态框（同原逻辑，未修改） -->
 <div id="singlePayModal" class="modal">
     <div class="modal-content">
         <h3>💎 单次付费 ¥4.9</h3>
@@ -390,12 +458,12 @@
         return false;
     }
 
-    // 下载 Word
+    // 下载 Word（保持原逻辑）
     document.getElementById('downloadWordBtn').onclick = () => {
         if (!handleDownload()) return;
         const content = document.getElementById('resumePreview').innerHTML;
         const style = document.querySelector('style').innerHTML;
-        const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>我的简历</title><style>${style} body { padding: 20px; background: white; } .preview-panel, .btn-group, .form-panel { display: none; }</style></head><body>${content}</body></html>`;
+        const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>我的简历</title><style>${style} body { padding: 20px; background: white; } .form-panel, .btn-group, .tooltip { display: none; }</style></head><body>${content}</body></html>`;
         const blob = new Blob([fullHtml], { type: 'application/msword' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -404,41 +472,14 @@
         URL.revokeObjectURL(link.href);
     };
 
-    // 电脑端：直接生成 PDF（html2canvas + jsPDF）
-    document.getElementById('pdfPcBtn').onclick = async () => {
+    // 电脑端 PDF - 改为调用浏览器打印（完美分页）
+    document.getElementById('pdfPcBtn').onclick = () => {
         if (!handleDownload()) return;
-        const element = document.getElementById('resumePreview');
-        const btn = this;
-        btn.innerText = '生成中...';
-        btn.disabled = true;
-        try {
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: false,
-                logging: false
-            });
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const imgWidth = 210; // mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            const pdf = new jsPDF({
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            });
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            pdf.save('my_resume.pdf');
-        } catch (err) {
-            console.error(err);
-            alert('PDF 生成失败，请尝试使用“下载 Word”或“导出 HTML”。');
-        } finally {
-            btn.innerText = '💻 保存为 PDF（电脑推荐）';
-            btn.disabled = false;
-        }
+        // 直接弹出打印对话框，用户可选择“另存为 PDF”
+        window.print();
     };
 
-    // 手机端：导出 HTML 并引导打印
+    // 手机端：导出 HTML 并引导打印（保持原逻辑）
     document.getElementById('htmlMobileBtn').onclick = () => {
         if (!handleDownload()) return;
         const content = document.getElementById('resumePreview').innerHTML;
@@ -466,14 +507,42 @@
         .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
         .skill-tag { background: #e9ecef; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
         @media print {
+            .print-btn-container { display: none !important; }
             body { background: white; padding: 0; }
             .preview-header { background: #2c3e66 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .photo { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        .print-btn-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .print-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .print-note {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 8px;
         }
     </style>
     <style>${style}</style>
 </head>
 <body>
+<div class="print-btn-container">
+    <button class="print-btn" onclick="window.print();">🖨️ 点击打印 / 保存为 PDF</button>
+</div>
+<div class="print-note">
+    💡 如果点击无效，请点击浏览器右上角“...” → 选择“打印”<br>
+    ⚠️ 如果在微信内无法打印，请点击右上角“...” → “在浏览器中打开”
+</div>
 <div class="preview-card">
     ${content}
 </div>
@@ -486,11 +555,11 @@
         link.click();
         URL.revokeObjectURL(link.href);
         setTimeout(() => {
-            alert('✅ HTML 文件已导出。\n\n请用手机浏览器（Chrome/Safari）打开该文件，然后点击右上角“...” → 选择“打印” → 保存为 PDF。\n\n如果在微信内，请先“在浏览器中打开”。');
+            alert('✅ HTML 文件已导出。\n\n打开后点击页面中的“打印”按钮即可生成 PDF。\n如果在微信内，请先点击右上角“在浏览器中打开”。');
         }, 500);
     };
 
-    // 激活码逻辑
+    // 激活码逻辑（完全保留）
     const activateBtn = document.getElementById('activateCodeBtn');
     const verifyBtn = document.getElementById('verifyCodeBtn');
     verifyBtn.onclick = () => {
