@@ -58,7 +58,7 @@
         
         <!-- 客服微信号及复制按钮 -->
         <div class="contact-bar">
-            <span>📱 客服微信号：<strong>TDT05010511</strong></span>
+            <span>📱 客服微信号：<strong>T154034</strong></span>
             <button id="copyWechatBtn" class="copy-wechat-btn">📋 复制微信号</button>
         </div>
         <p style="font-size:0.8rem; color:#666; margin-top:-8px;">请添加客服微信，发送复制的信息以获取激活码</p>
@@ -95,10 +95,10 @@
 <script>
     // 复制微信号
     document.getElementById('copyWechatBtn').addEventListener('click', function() {
-        navigator.clipboard.writeText('TDT05010511').then(() => {
+        navigator.clipboard.writeText('T154034').then(() => {
             alert('客服微信号已复制，请打开微信粘贴搜索添加好友');
         }).catch(() => {
-            alert('复制失败，请手动复制微信号：TDT05010511');
+            alert('复制失败，请手动复制微信号：T154034');
         });
     });
 
@@ -121,9 +121,9 @@
         
         const message = `【VIP审核】\n微信号：${data.contact}\n订单号：${data.orderId}\n截图：${data.screenshot || '无'}\n时间：${data.time}`;
         
-        if (confirm('请复制以下信息，并通过微信发送给客服（TDT05010511）以完成审核：\n\n' + message + '\n\n点击确定复制文本')) {
+        if (confirm('请复制以下信息，并通过微信发送给客服（T154034）以完成审核：\n\n' + message + '\n\n点击确定复制文本')) {
             navigator.clipboard.writeText(message).then(() => {
-                document.getElementById('successMsg').innerHTML = '✅ 信息已复制！请打开微信，粘贴并发送给客服（TDT05010511），我们将在24小时内为您发放激活码。';
+                document.getElementById('successMsg').innerHTML = '✅ 信息已复制！请打开微信，粘贴并发送给客服（T154034），我们将在24小时内为您发放激活码。';
                 document.getElementById('successMsg').style.display = 'block';
                 document.getElementById('contact').value = '';
                 document.getElementById('orderId').value = '';
